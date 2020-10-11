@@ -11,8 +11,9 @@ Numpy
 `` 
 model = Model(name='model', input_dim=[1, 28, 28])
 ``
-2. initial the structure
-'''
+
+2. initial the structure  
+``
 model.initial(
     [
         Conv2D(name='C1', kernel_size=[3, 3], filters=5, padding='valid'),
@@ -25,4 +26,20 @@ model.initial(
         Activation(name='A4', method='softmax'),
     ]
 )
-'''
+``
+
+3. fit the training set  
+``
+model.fit(mnist.train_x_set, mnist.train_y_set)
+``
+
+4. training  
+``
+model.train(lr=0.01, momentum=0.9, max_epoch=500, batch_size=128, interval=10)
+``
+Note: print the training log at every interval epoch.  
+
+5. print test result
+``
+print('Test_Acc=[{}]'.format(model.measure(mnist.test_x_set, mnist.test_y_set)))
+``
