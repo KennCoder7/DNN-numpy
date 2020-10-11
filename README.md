@@ -26,9 +26,9 @@ model.initial(
         MaxPooling2D(name='P1', pooling_size=[2, 2]),
         Flatten(name='flatten'),
         Dense(name='fc1', units=100),
-        Activation(name='A3', method='relu'),
+        Activation(name='A2', method='relu'),
         Dense(name='fc2', units=10),
-        Activation(name='A4', method='softmax'),
+        Activation(name='A3', method='softmax'),
     ]
 )  
 ```
