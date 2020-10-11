@@ -1,6 +1,7 @@
 # CNN-numpy
 ## Introduction
-Convolutional Neural Networks implemented in NumPy.
+Convolutional Neural Networks implemented in NumPy.  
+Perfrom MNIST recognition task.
 
 ## Require  
 Python 3  
