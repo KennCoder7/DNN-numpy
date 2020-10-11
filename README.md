@@ -1,7 +1,7 @@
 # CNN-numpy
 ## Introduction
 Convolutional Neural Networks implemented in NumPy.  
-Perfrom MNIST recognition task.
+Perfrom MNIST recognition task. Test_Acc=[0.9458] after 500 epoches.
 
 ## Require  
 Python 3  
