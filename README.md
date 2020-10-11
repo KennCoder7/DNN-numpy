@@ -1,6 +1,6 @@
 # CNN-numpy
 Convolutional Neural Networks implemented in NumPy.
 
-##Require
+#Require  
 Python 3  
 Numpy  
