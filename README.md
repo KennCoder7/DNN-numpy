@@ -3,8 +3,8 @@
 Convolutional Neural Networks implemented in NumPy.  
 Perfrom MNIST recognition task.  
 ``
-C5*3*3-Relu-P2*2-FC100-Relu-FC10-Softmax  
-``
+C5*3*3-Relu-P2*2-FC100-Relu-FC10-Softmax
+``  
 Test_Acc=[0.9458] after 500 epoches.
 
 ## Require  
