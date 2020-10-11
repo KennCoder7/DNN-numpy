@@ -7,10 +7,10 @@ Python 3
 Numpy  
 
 ## Example
-1. define a Model class
-···
+1. define a Model class  
+`` 
 model = Model(name='model', input_dim=[1, 28, 28])
-···
+``
 2. initial the structure
 '''
 model.initial(
