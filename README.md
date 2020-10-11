@@ -9,7 +9,7 @@ Numpy
 ## Example
 1. define a Model class  
 ``` 
-model = Model(name='model', input_dim=[1, 28, 28])
+model = Model(name='model', input_dim=[1, 28, 28])  
 ```
 
 2. initial the structure  
@@ -25,7 +25,7 @@ model.initial(
         Dense(name='fc2', units=10),
         Activation(name='A4', method='softmax'),
     ]
-)
+)  
 ```
 
 3. fit the training set  
@@ -33,13 +33,16 @@ model.initial(
 model.fit(mnist.train_x_set, mnist.train_y_set)
 ```
 
-4. training  
+4. training, print the training log at every interval epoch.    
 ```
-model.train(lr=0.01, momentum=0.9, max_epoch=500, batch_size=128, interval=10)
+model.train(lr=0.01, momentum=0.9, max_epoch=500, batch_size=128, interval=10)  
 ```  
-Note: print the training log at every interval epoch.  
 
 5. print test result  
 ```
-print('Test_Acc=[{}]'.format(model.measure(mnist.test_x_set, mnist.test_y_set)))
+print('Test_Acc=[{}]'.format(model.measure(mnist.test_x_set, mnist.test_y_set)))  
 ```
+
+## Note
+Training requires lots of time.  
+The reason why the training accuracy vibrates is about it computes the accuracy of batch set rather than whole training set.    
