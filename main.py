@@ -14,8 +14,10 @@ def mlp_mnist():
             Flatten(name='flatten'),
             Dense(name='fc1', units=100),
             Activation(name='A1', method='relu'),
-            Dense(name='fc2', units=10),
-            Activation(name='A2', method='softmax'),
+            Dense(name='fc2', units=100),
+            Activation(name='A2', method='relu'),
+            Dense(name='fc3', units=10),
+            Activation(name='A3', method='softmax'),
         ]
     )
     model.fit(mnist.train_x_set, mnist.train_y_set)
