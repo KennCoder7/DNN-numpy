@@ -7,8 +7,8 @@ from model.Model import *
 
 
 def mlp_mnist():
-    mnist = MNIST(dimension=1)
-    model = Model(name='model', input_dim=[784])
+    mnist = MNIST(dimension=3)
+    model = Model(name='model', input_dim=[1, 28, 28])
     model.initial(
         [
             Flatten(name='flatten'),
