@@ -20,21 +20,22 @@ class Flatten(object):
             exit(1)
         return self.name, self.__output_dim
 
-    def forward(self, x):
-        if x.shape[0] != self.__input_dim[0] or x.shape[1] != self.__input_dim[1] or x.shape[2] != self.__input_dim[2]:
+    def forward(self, _x_set):
+        if list(_x_set.shape[1:]) != list(self.__input_dim):
             print("{} input set dim error!".format(self.name))
             exit(1)
-        return x.reshape(-1)
+        nums = len(_x_set)
+        return _x_set.reshape(nums, -1)
 
-    def backward(self, e_up):
-        e_up = np.array(e_up)
-        return np.reshape(e_up, self.__input_dim)
+    def backward(self, _e_up_set):
+        _e_up_set = np.array(_e_up_set)
+        return np.reshape(_e_up_set, [-1, self.__input_dim[0], self.__input_dim[1], self.__input_dim[2]])
 
 
 if __name__ == '__main__':
     flatten = Flatten(name='flatten')
     flatten.initial([32, 2, 2])
-    x = np.random.randn(32, 2, 2)
+    x = np.random.randn(10, 32, 2, 2)
     y = flatten.forward(x)
     print(y.shape)
     e = flatten.backward(y)

@@ -18,32 +18,34 @@ class Dense(object):
             print("{} initial error!".format(self.name))
             exit(1)
         self.__input_dim = input_dim
-        std = np.sqrt(2. / (self.__input_dim[0]))  # he normalization
-        self.__w = np.random.normal(loc=0., scale=std, size=[self.__units, self.__input_dim[0]])
+        std = np.sqrt(2. / (self.__input_dim[0]))  # He normalization
+        self.__w = np.random.normal(loc=0., scale=std, size=[self.__input_dim[0], self.__units])
         self.__b = np.random.normal(loc=0., scale=std, size=[self.__units])
         return self.name, [self.__units]
 
     def weight_shape(self):
         return self.__w.shape, self.__b.shape
 
-    def forward(self, x):
-        if x.shape[0] != self.__input_dim[0]:
+    def forward(self, _x_set):
+        if list(_x_set.shape[1:]) != list(self.__input_dim):
             print("{} input set dim error!".format(self.name))
             exit(1)
-        _z = np.dot(self.__w, x) + self.__b
+        _z = np.dot(_x_set, self.__w) + self.__b
         return _z
 
-    def backward(self, _e):
-        # _e_down = np.zeros([self.__input_dim[0]])
-        _e_down = np.dot(self.__w.transpose(1, 0), _e)
+    def backward(self, _e_set):
+        _e_down = np.dot(_e_set, self.__w.transpose())
         return _e_down
 
-    def gradient(self, z_down, _e):
-        _e = _e.copy()
-        _dw = np.zeros([self.__units, self.__input_dim[0]])
-        _db = np.zeros([self.__units])
-        _dw = np.outer(_e, z_down)
-        _db = _e
+    def gradient(self, _z_down_set, _e_set):
+        _e_set = _e_set.copy()
+        nums = len(_z_down_set)
+        _z_down_set_m1 = np.expand_dims(_z_down_set, 2)
+        _e_set_1n = np.expand_dims(_e_set, 1)
+        _dw = np.matmul(_z_down_set_m1, _e_set_1n)
+        _dw = np.sum(_dw, axis=0) / nums
+        _db = _e_set
+        _db = np.sum(_db, axis=0) / nums
         return _dw, _db
 
     def gradient_descent(self, _dw, _db):
@@ -55,8 +57,8 @@ if __name__ == '__main__':
     dense_block = Dense(name='fc', units=10)
     dense_block.initial([5])
 
-    x = np.random.randn(5)
-    y = np.random.randn(10)
+    x = np.random.randn(3, 5)
+    y = np.random.randn(3, 10)
 
     for i in range(100):
         y_ = dense_block.forward(x)

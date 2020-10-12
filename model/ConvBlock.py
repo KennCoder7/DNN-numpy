@@ -53,10 +53,10 @@ class Conv2D(object):
                       (self.__input_dim[0] * self.__kernel_size[0] * self.__kernel_size[1]))  # he normalization
         self.__w = np.random.normal(loc=0., scale=std,
                                     size=[self.__output_dim[0], self.__input_dim[0],
-                                        self.__kernel_size[0], self.__kernel_size[1]])
+                                          self.__kernel_size[0], self.__kernel_size[1]])
         self.__b = np.random.normal(loc=0., scale=std, size=[self.__filters])
 
-    def __padding_forward(self, _x):
+    def __padding_forward(self, _x_set):
         if self.__kernel_size[0] % 2 == 0:
             left_padding = int(self.__kernel_size[0] / 2 - 1)
             right_padding = int(self.__kernel_size[0] / 2 + 1)
@@ -69,14 +69,15 @@ class Conv2D(object):
         else:
             top_padding = int(self.__kernel_size[1] // 2)
             bottom_padding = int(self.__kernel_size[1] // 2)
-        x_padding = np.zeros([self.__input_dim[0],
+        x_padding = np.zeros([len(_x_set),
+                              self.__input_dim[0],
                               self.__input_dim[1] + left_padding + right_padding,
                               self.__input_dim[2] + top_padding + bottom_padding])
-        x_padding[:, left_padding:self.__input_dim[1] + left_padding,
-        top_padding:self.__input_dim[2] + top_padding] = _x.copy()
+        x_padding[:, :, left_padding:self.__input_dim[1] + left_padding,
+        top_padding:self.__input_dim[2] + top_padding] = _x_set.copy()
         return x_padding
 
-    def __padding_backward(self, _x):
+    def __padding_backward(self, _e_set):
         if self.__padding == 'same':
             if self.__kernel_size[0] % 2 == 0:
                 left_padding = int(self.__kernel_size[0] / 2 - 1)
@@ -90,53 +91,56 @@ class Conv2D(object):
             else:
                 top_padding = int(self.__kernel_size[1] // 2)
                 bottom_padding = int(self.__kernel_size[1] // 2)
-            x_padding = np.zeros([self.__output_dim[0],
+            e_padding = np.zeros([len(_e_set), self.__output_dim[0],
                                   self.__output_dim[1] + left_padding + right_padding,
                                   self.__output_dim[2] + top_padding + bottom_padding])
-            x_padding[:, left_padding:self.__output_dim[1] + left_padding,
-            top_padding:self.__output_dim[2] + top_padding] = _x.copy()
+            e_padding[:, :, left_padding:self.__output_dim[1] + left_padding,
+            top_padding:self.__output_dim[2] + top_padding] = _e_set.copy()
         else:
             left_padding = int(self.__kernel_size[0] - 1)
             right_padding = int(self.__kernel_size[0] - 1)
             top_padding = int(self.__kernel_size[1] - 1)
             bottom_padding = int(self.__kernel_size[1] - 1)
-            x_padding = np.zeros([self.__output_dim[0],
+            e_padding = np.zeros([len(_e_set), self.__output_dim[0],
                                   self.__output_dim[1] + left_padding + right_padding,
                                   self.__output_dim[2] + top_padding + bottom_padding])
-            x_padding[:, left_padding:self.__output_dim[1] + left_padding,
-            top_padding:self.__output_dim[2] + top_padding] = _x.copy()
-        return x_padding
+            e_padding[:, :, left_padding:self.__output_dim[1] + left_padding,
+            top_padding:self.__output_dim[2] + top_padding] = _e_set.copy()
+        return e_padding
 
     @staticmethod
-    def __conv(_x, _kernel):
-        ks = [_kernel.shape[0], _kernel.shape[1]]
-        _x = _x.copy()
-        width = _x.shape[0]-ks[0]+1
-        height = _x.shape[1]-ks[1]+1
-        _z = np.zeros([width, height])
-        for column in range(width):  # width of output
-            for row in range(height):  # height of output
-                part_x = _x[column:column + ks[0], row:row + ks[1]]
-                _z[column][row] = np.vdot(_kernel, part_x)
+    def __dw_conv(_z_down_set, _e_set):
+        ks = [_e_set.shape[0], _e_set.shape[1]]
+        _z_down_set = _z_down_set.copy()
+        nums = _z_down_set.shape[2]
+        rows = _z_down_set.shape[0] - ks[0] + 1
+        columns = _z_down_set.shape[1] - ks[1] + 1
+        _z = np.zeros([rows, columns, nums])
+        for r in range(rows):  # rows of output
+            for c in range(columns):  # columns of output
+                part_x = _z_down_set[r:r + ks[0], c:c + ks[1], :]
+                _z[r][c] = np.sum(np.multiply(part_x, _e_set), axis=(0, 1))
         return _z
 
     @staticmethod
-    def __matrix_conv(_x, _kernel):
-        if _x.shape[0] != _kernel.shape[1]:
+    def __matrix_conv(_x_set, _kernel):
+        if _x_set.shape[1] != _kernel.shape[1]:
             print("matrix_conv error!")
             exit(1)
         ks = [_kernel.shape[2], _kernel.shape[3]]
-        _x = _x.copy()
+        _x_set = _x_set.copy()
+        _kernel = _kernel.copy()
+        nums = len(_x_set)
         filters = _kernel.shape[0]
-        width = _x.shape[1] - ks[0] + 1
-        height = _x.shape[2] - ks[1] + 1
-        _z = np.zeros([filters, width, height])
-        for ch in range(filters):  # filters
-            for column in range(width):  # width of output
-                for row in range(height):  # height of output
-                    part_x = _x[:, column:column + ks[0], row:row + ks[1]]
-                    _z[ch][column][row] = np.vdot(_kernel[ch], part_x)
-        return _z
+        rows = _x_set.shape[2] - ks[0] + 1
+        columns = _x_set.shape[3] - ks[1] + 1
+        _z = np.zeros([rows, columns, nums, filters])
+        _kernel = _kernel.transpose([1, 2, 3, 0])
+        for r in range(rows):  # rows of output
+            for c in range(columns):  # columns of output
+                part_x = _x_set[:, :, r:r + ks[0], c:c + ks[1]]
+                _z[r][c] = np.dot(part_x.reshape(nums, -1), _kernel.reshape(-1, filters))
+        return _z.transpose([2, 3, 0, 1])
 
     def __w_flip180(self):
         arr = self.__w.copy()
@@ -155,31 +159,35 @@ class Conv2D(object):
     def weight_shape(self):
         return self.__w.shape, self.__b.shape
 
-    def forward(self, _x):
-        if _x.shape[0] != self.__input_dim[0] or _x.shape[1] != self.__input_dim[1] or \
-                _x.shape[2] != self.__input_dim[2]:
+    def forward(self, _x_set):
+        if list(_x_set.shape[1:]) != list(self.__input_dim):
             print("{} input set dim error!".format(self.name))
             exit(1)
-        _x = _x.copy() if self.__padding == 'valid' else self.__padding_forward(_x)
-        _z = self.__matrix_conv(_x, self.__w)
+        _x_set = _x_set.copy() if self.__padding == 'valid' else self.__padding_forward(_x_set)
+        _z = self.__matrix_conv(_x_set, self.__w)
         return _z
 
-    def backward(self, _e):
-        _e = self.__padding_backward(_e)
+    def backward(self, _e_set):
+        _e_set = self.__padding_backward(_e_set)
         _w_flp = self.__w_flip180()
         # print(self.w[-1, 0], '\n', _w_flp[0, -1])
-        _e_down = self.__matrix_conv(_e, _w_flp)
+        _e_down = self.__matrix_conv(_e_set, _w_flp)
         return _e_down
 
-    def gradient(self, z_down, _e):
-        _e = _e.copy()
-        _z_down = z_down.copy() if self.__padding == 'valid' else self.__padding_forward(z_down.copy())
-        _ch = z_down.shape[0]
-        _dw = np.zeros(self.__w.shape)
+    def gradient(self, _z_down_set, _e_set):
+        _e_set = _e_set.copy()
+        _z_down_set = _z_down_set.copy() if self.__padding == 'valid' else self.__padding_forward(_z_down_set.copy())
+        nums = len(_z_down_set)
+        _w_shape = list(self.__w.shape)
+        _w_shape.append(nums)
+        _dw = np.zeros(_w_shape)
+        _e_set = _e_set.transpose([1, 2, 3, 0])
+        _z_down_set = _z_down_set.transpose([1, 2, 3, 0])
         for m in range(self.__w.shape[0]):
             for n in range(self.__w.shape[1]):
-                _dw[m][n] = self.__conv(_z_down[n], _e[m])
-        _db = np.sum(_e, (1, 2))
+                _dw[m][n] = self.__dw_conv(_z_down_set[n], _e_set[m])
+        _dw = np.sum(_dw, axis=-1) / nums
+        _db = np.sum(_e_set, (1, 2, 3)) / nums
         return _dw, _db
 
     def gradient_descent(self, _dw, _db):
@@ -188,15 +196,16 @@ class Conv2D(object):
 
 
 if __name__ == '__main__':
-    cnn_block = Conv2D(name='c', kernel_size=3, filters=8, padding='valid')
+    cnn_block = Conv2D(name='c', kernel_size=3, filters=8, padding='same')
     cnn_block.initial([2, 5, 5])
 
-    x = np.random.randn(2, 5, 5)
-    y = np.random.randn(8, 3, 3)
+    x = np.random.randn(1, 2, 5, 5)
+    y = np.random.randn(1, 8, 5, 5)
+
     for i in range(100):
         y_ = cnn_block.forward(x)
         cost = y_ - y
         # e = cnn_block.backward(cost)
         dw, db = cnn_block.gradient(x, cost)
         cnn_block.gradient_descent(0.01*dw, 0.01*db)
-        print(f"Epoch{i}: Loss={np.sum(cost**2)}")
+        print(f"Epoch{i}: Loss={np.sum(cost**2)/len(x)}")

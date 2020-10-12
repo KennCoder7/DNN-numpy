@@ -15,37 +15,40 @@ class Activation(object):
         self.__input_dim = input_dim
         return self.name, self.__input_dim
 
-    def forward(self, x):
-        _a = activation_function(self.__method, x)
-        return _a
+    def forward(self, _x_set):
+        _a_set = activation_function(self.__method, _x_set)
+        return _a_set
 
-    def backward(self, e, z_down):
-        _e_down = derivative_function(self.__method, z_down) * e
-        return _e_down
-
-
-def sigmoid(x):
-    return 1 / (1 + np.exp(-x))
+    def backward(self, _e_set, _z_down_set):
+        _e_down_set = derivative_function(self.__method, _z_down_set) * _e_set
+        return _e_down_set
 
 
-def d_sigmoid(x):
-    return (1 - sigmoid(x)) * sigmoid(x)
+def sigmoid(_x_set):
+    return 1 / (1 + np.exp(-_x_set))
 
 
-def softmax(x):
-    shift_x = x - np.max(x)  # 防止输入增大时输出为nan
-    exp_x = np.exp(shift_x)
-    return exp_x / np.sum(exp_x)
+def d_sigmoid(_x_set):
+    return (1 - sigmoid(_x_set)) * sigmoid(_x_set)
 
 
-def relu(x):
-    return np.maximum(0, x)
+def softmax(_x_set):
+    x_row_max = _x_set.max(axis=-1)
+    x_row_max = x_row_max.reshape(list(_x_set.shape)[:-1] + [1])
+    _x_set = _x_set - x_row_max
+    x_exp = np.exp(_x_set)
+    x_exp_row_sum = x_exp.sum(axis=-1).reshape(list(_x_set.shape)[:-1] + [1])
+    return x_exp / x_exp_row_sum
 
 
-def d_relu(x):
-    x[x <= 0] = 0
-    x[x > 0] = 1
-    return x
+def relu(_x_set):
+    return np.maximum(0, _x_set)
+
+
+def d_relu(_x_set):
+    _x_set[_x_set <= 0] = 0
+    _x_set[_x_set > 0] = 1
+    return _x_set
 
 
 def activation_function(method, x):
@@ -76,3 +79,15 @@ def derivative_function(method, x):
         print("No such activation: {}!".format(method))
         exit(1)
     return _d
+
+
+if __name__ == '__main__':
+    x_set = np.random.randn(3, 5)
+    print(sigmoid(x_set).shape)
+    print(d_sigmoid(x_set).shape)
+    print(relu(x_set).shape)
+    print(d_relu(x_set).shape)
+    print(softmax(x_set).shape)
+
+    for i in range(3):
+        print(np.sum(softmax(x_set)[i]))
