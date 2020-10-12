@@ -173,11 +173,12 @@ class Conv2D(object):
 
     def gradient(self, z_down, _e):
         _e = _e.copy()
+        _z_down = z_down.copy() if self.__padding == 'valid' else self.__padding_forward(z_down.copy())
         _ch = z_down.shape[0]
         _dw = np.zeros(self.__w.shape)
         for m in range(self.__w.shape[0]):
             for n in range(self.__w.shape[1]):
-                _dw[m][n] = self.__conv(z_down[n], _e[m])
+                _dw[m][n] = self.__conv(_z_down[n], _e[m])
         _db = np.sum(_e, (1, 2))
         return _dw, _db
 
