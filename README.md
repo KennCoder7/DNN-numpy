@@ -71,7 +71,7 @@ The reason why the training accuracy vibrates is about it computes the accuracy 
 # MLP-numpy  
 ## Principle
 ### Dense Block (Fully Connected Block)
-Forward:  ![](http://latex.codecogs.com/svg.latex?z^l=z^{l-1}*w^l+b^l)  
+Forward: ![](http://latex.codecogs.com/svg.latex?w^l=w^l*z^{l-1}+b^l)  
 Backward: ![](http://latex.codecogs.com/svg.latex?e^{l-1}=(w^l)^T*e^l)  
 Gradient: ![](http://latex.codecogs.com/svg.latex?dw^l=e^l*z^{l-1},db^l=e^l)  
 Where * is refer to matmul operation.  
