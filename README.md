@@ -1,6 +1,6 @@
 # Introduction
 Deep Neural Networks implemented in NumPy.  
-Including [Convolutional Neural Networks](#CNN-numpy), [Multi-Layer Perceptron](#MLP-numpy), and LSTM coming so...  
+Including [Multi-Layer Perceptron](#MLP-numpy), [Convolutional Neural Networks](#CNN-numpy), and LSTM coming so...  
 Now bascily preforming classification task, so Cross Entropy Loss and Batch Stochastic Gradient Descent are implemented.
 # Require  
 Python 3  
@@ -76,6 +76,11 @@ Backward: ![](http://latex.codecogs.com/svg.latex?e^{l-1}=(w^l)^T*e^l)
 Gradient: ![](http://latex.codecogs.com/svg.latex?dw^l=e^l*z^{l-1},db^l=e^l)  
 Where * is refer to matmul operation.  
 ## Example
+Perfrom MNIST recognition task.  
+``
+Flatten-FC100-Relu-FC100-Relu-FC10-Softmax
+``  
+Test_Acc=0.9525 after 500 epoches.
 ```
 def mlp_mnist():
     mnist = MNIST(dimension=3)
