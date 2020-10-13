@@ -22,7 +22,7 @@ Forward: ![](http://latex.codecogs.com/svg.latex?z^l=f(z^{l-1}))
 Backward: ![](http://latex.codecogs.com/svg.latex?e^{l-1}=df(e^l))  
 Where f is refer to maxpooling sample, df is refer to upsample.
 ### Dense Block (Fully Connected Block)
-Forward:  ![](http://latex.codecogs.com/svg.latex?z^l=w^l*z^{l-1}+b^l)  
+Forward: ![](http://latex.codecogs.com/svg.latex?w^l=w^l*z^{l-1}+b^l)  
 Backward: ![](http://latex.codecogs.com/svg.latex?e^{l-1}=(w^l)^T*e^l)  
 Gradient: ![](http://latex.codecogs.com/svg.latex?dw^l=e^l*z^{l-1},db^l=e^l)  
 Where * is refer to matmul operation.  
