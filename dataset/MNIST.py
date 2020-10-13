@@ -1,11 +1,12 @@
 import numpy as np
 import struct
 import os
+
 PATH = r'D:\pyproject\ML\datasets\mnist_data'
 
 
 class MNIST(object):
-    def __init__(self, shuffle=True, dimension=1):
+    def __init__(self, shuffle=True, dimension=3):
         self.train_x_set = None
         self.train_y_set = None
         self.train_labels_set = None
@@ -15,7 +16,7 @@ class MNIST(object):
         self.test_labels_set = None
 
         self._shuffle = shuffle
-        self.dim = dimension
+        self.__dim = dimension
 
         self.__load_mnist_train(PATH)
         self.__load_mnist_test(PATH)
@@ -62,11 +63,25 @@ class MNIST(object):
     def __normalization(self):
         self.train_x_set = self.train_x_set / 255.
         self.test_x_set = self.test_x_set / 255.
+        if self.__dim == 3:
+            mean = 0
+            std = 0
+            for x in self.train_x_set:
+                mean += np.mean(x[0, :, :])
+            mean /= len(self.train_x_set)
+            self.train_x_set -= mean
+            for x in self.train_x_set:
+                std += np.mean(np.square(x[0, :, :]).flatten())
+            std = np.sqrt(std / len(self.train_x_set))
+            print('The mean and std of MNIST:', mean, std)    # 0.1306604762738434 0.30810780385646314
+            self.train_x_set /= std
+            self.test_x_set -= mean
+            self.test_x_set /= std
 
     def __dimension(self):
-        if self.dim == 1:
+        if self.__dim == 1:
             pass
-        elif self.dim == 3:
+        elif self.__dim == 3:
             self.train_x_set = np.reshape(self.train_x_set, [len(self.train_x_set), 1, 28, 28])
             self.test_x_set = np.reshape(self.test_x_set, [len(self.test_x_set), 1, 28, 28])
         else:
