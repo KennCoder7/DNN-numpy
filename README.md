@@ -1,6 +1,6 @@
 # Introduction
 Deep Neural Networks implemented in NumPy.  
-Including [Convolutional Neural Networks](#CNN-numpy), Multi-Layer Perceptron, and LSTM coming so...
+Including [Convolutional Neural Networks](#CNN-numpy), [Multi-Layer Perceptron](#MLP-numpy), and LSTM coming so...
 
 # Require  
 Python 3  
