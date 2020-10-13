@@ -1,6 +1,6 @@
 # Introduction
 Deep Neural Networks implemented in NumPy.  
-Including [Multi-Layer Perceptron](#MLP-numpy), [Convolutional Neural Networks](#CNN-numpy), and LSTM coming soon...  
+Including [Multi-Layer Perceptron](#MLP-numpy), [Convolutional Neural Networks](#CNN-numpy), and LSTM is coming soon...  
 Bascily preforming classification task, so Cross Entropy Loss and Batch Stochastic Gradient Descent are implemented.
 # Require  
 Python 3  
