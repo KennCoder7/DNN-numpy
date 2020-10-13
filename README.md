@@ -1,15 +1,17 @@
+# Introduction
+Deep Neural Networks implemented in NumPy.  
+Including [Convolutional Neural Networks](#CNN-numpy), Multi-Layer Perceptron, and LSTM coming so...
+
+# Require  
+Python 3  
+Numpy  
+
 # CNN-numpy
-## Introduction
-Convolutional Neural Networks implemented in NumPy.  
 Perfrom MNIST recognition task.  
 ``
 C5*3*3-Relu-P2*2-Flatten-FC100-Relu-FC10-Softmax
 ``  
 Test_Acc=[0.9649] after 500 epoches.
-
-## Require  
-Python 3  
-Numpy  
 
 ## Example
 1. define a Model class  
