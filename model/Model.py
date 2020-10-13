@@ -211,7 +211,7 @@ if __name__ == '__main__':
 
         _model.fit(x_set, y_set)
         _model.train(lr=0.01, batch_size=1, max_epoch=100, interval=1)
-        print(_model.predict(x_set[1]))
+        print(_model.predict(x_set))
 
 
     model_test2()
