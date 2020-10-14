@@ -157,7 +157,7 @@ class Conv2D(object):
         return self.name, self.__output_dim
 
     def weight_shape(self):
-        return self.__w.shape, self.__b.shape
+        return {'w': self.__w.shape, 'b': self.__b.shape}
 
     def forward(self, _x_set):
         if list(_x_set.shape[1:]) != list(self.__input_dim):
@@ -171,8 +171,8 @@ class Conv2D(object):
         _e_set = self.__padding_backward(_e_set)
         _w_flp = self.__w_flip180()
         # print(self.w[-1, 0], '\n', _w_flp[0, -1])
-        _e_down = self.__matrix_conv(_e_set, _w_flp)
-        return _e_down
+        _e_down_set = self.__matrix_conv(_e_set, _w_flp)
+        return _e_down_set
 
     def gradient(self, _z_down_set, _e_set):
         _e_set = _e_set.copy()
@@ -188,11 +188,13 @@ class Conv2D(object):
                 _dw[m][n] = self.__dw_conv(_z_down_set[n], _e_set[m])
         _dw = np.sum(_dw, axis=-1) / nums
         _db = np.sum(_e_set, (1, 2, 3)) / nums
-        return _dw, _db
+        return {'w': _dw, 'b': _db}
 
-    def gradient_descent(self, _dw, _db):
-        self.__w -= _dw
-        self.__b -= _db
+    def gradient_descent(self, _g, test_lr=1.):
+        _dw = _g['w']
+        _db = _g['b']
+        self.__w -= test_lr * _dw
+        self.__b -= test_lr * _db
 
 
 if __name__ == '__main__':
@@ -206,6 +208,6 @@ if __name__ == '__main__':
         y_ = cnn_block.forward(x)
         cost = y_ - y
         # e = cnn_block.backward(cost)
-        dw, db = cnn_block.gradient(x, cost)
-        cnn_block.gradient_descent(0.01*dw, 0.01*db)
+        g = cnn_block.gradient(x, cost)
+        cnn_block.gradient_descent(g, 0.01)
         print(f"Epoch{i}: Loss={np.sum(cost**2)/len(x)}")

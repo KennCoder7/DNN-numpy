@@ -8,6 +8,7 @@ from PoolingBlock import MaxPooling2D
 from FlattenBlock import Flatten
 from DenseBlock import Dense
 from ActivationBlock import Activation
+from RNNBLock import BasicRNN
 
 
 class Model(object):
@@ -15,8 +16,6 @@ class Model(object):
         self.name = name
         self.__n_class = n_class
         self.__input_dim = input_dim
-        self.__dw = {}
-        self.__db = {}
         self.__z = {}
         self.__e = {}
         self.__pool_index = {}
@@ -54,7 +53,7 @@ class Model(object):
         temp_z_set = _x_set.copy()
         self.__z['x'] = temp_z_set
         for layer_block in self.__layer_block_dct.values():
-            if isinstance(layer_block, (Conv2D, Dense, Flatten, Activation)):
+            if isinstance(layer_block, (Conv2D, Dense, Flatten, Activation, BasicRNN)):
                 temp_z_set = layer_block.forward(temp_z_set)
                 self.__z[layer_block.name] = temp_z_set
             elif isinstance(layer_block, MaxPooling2D):
@@ -69,7 +68,7 @@ class Model(object):
             layer_name = self.__layer_name_lst[i]
             layer_name_down = self.__layer_name_lst[i - 1]
             layer_block = self.__layer_block_dct[layer_name]
-            if isinstance(layer_block, (Conv2D, Dense, Flatten)):
+            if isinstance(layer_block, (Conv2D, Dense, Flatten, BasicRNN)):
                 _e_set = self.__e[layer_name]
                 self.__e[layer_name_down] = layer_block.backward(_e_set)
             elif isinstance(layer_block, MaxPooling2D):
@@ -88,8 +87,9 @@ class Model(object):
         return prd_prb - _target_set
 
     def __gradient(self, _x_set, _target_set):
-        _dw = {}
-        _db = {}
+        # _dw = {}
+        # _db = {}
+        _g = {}
         self.__forward(_x_set)
         self.__backward(_target_set)
         _batch_train_loss = self.__loss_of_current() / len(_x_set)
@@ -102,18 +102,19 @@ class Model(object):
             layer_name = self.__layer_name_lst[i]
             layer_name_down = self.__layer_name_lst[i - 1]
             layer_block = self.__layer_block_dct[layer_name]
-            if isinstance(layer_block, (Conv2D, Dense)):
+            if isinstance(layer_block, (Conv2D, Dense, BasicRNN)):
                 _z_down = self.__z[layer_name_down]
                 _e = self.__e[layer_name]
-                _dw[layer_name], _db[layer_name] = layer_block.gradient(_z_down, _e)
-        return _dw, _db, _batch_train_loss, _batch_train_acc
+                # _dw[layer_name], _db[layer_name] = layer_block.gradient(_z_down, _e)
+                _g[layer_name] = layer_block.gradient(_z_down, _e)
+        return _g, _batch_train_loss, _batch_train_acc
 
-    def __gradient_descent(self, _dw, _db):
+    def __gradient_descent(self, _g):
         for i in range(len(self.__layer_name_lst) - 1, 0, -1):
             layer_name = self.__layer_name_lst[i]
             layer_block = self.__layer_block_dct[layer_name]
-            if isinstance(layer_block, (Conv2D, Dense)):
-                layer_block.gradient_descent(_dw[layer_name], _db[layer_name])
+            if isinstance(layer_block, (Conv2D, Dense, BasicRNN)):
+                layer_block.gradient_descent(_g[layer_name])
 
     def fit(self, train_x_set, train_y_set):
         self.__train_x_set = train_x_set
@@ -139,28 +140,27 @@ class Model(object):
         if self.__train_x_set is None:
             print("None data fit!")
             exit(1)
-        vw = {}
-        vb = {}
+        _vg = {}
         for layer_name, layer_block in zip(self.__layer_block_dct.keys(), self.__layer_block_dct.values()):
-            if isinstance(layer_block, (Conv2D, Dense)):
-                w_shape, b_shape = layer_block.weight_shape()
-                vw[layer_name] = np.zeros(w_shape)
-                vb[layer_name] = np.zeros(b_shape)
+            if isinstance(layer_block, (Conv2D, Dense, BasicRNN)):
+                weight_shape = layer_block.weight_shape()
+                _vg[layer_name] = \
+                    {weight_name: np.zeros(list(weight_shape[weight_name])) for weight_name in weight_shape}
         batch_nums = len(self.__train_x_set) // batch_size
-        for e in range(max_epoch):
+        for e in range(max_epoch + 1):
             if shuffle and e % batch_nums == 0:
                 self.__shuffle_set(self.__train_x_set, self.__train_y_set)
             start_index = e % batch_nums * batch_size
             t_x = self.__train_x_set[start_index:start_index + batch_size]
             t_y = self.__train_y_set[start_index:start_index + batch_size]
-            _dw, _db, _batch_train_loss, _batch_train_acc = self.__gradient(t_x, t_y)
+            _g, _batch_train_loss, _batch_train_acc = self.__gradient(t_x, t_y)
             for layer_name, layer_block in zip(self.__layer_block_dct.keys(), self.__layer_block_dct.values()):
-                if isinstance(layer_block, (Conv2D, Dense)):
-                    vw[layer_name] = momentum * vw[layer_name] - lr * _dw[layer_name]
-                    vb[layer_name] = momentum * vb[layer_name] - lr * _db[layer_name]
-                    _dw[layer_name] = -vw[layer_name]
-                    _db[layer_name] = -vb[layer_name]
-            self.__gradient_descent(_dw, _db)
+                if isinstance(layer_block, (Conv2D, Dense, BasicRNN)):
+                    for weight_name in _g[layer_name]:
+                        _vg[layer_name][weight_name] = momentum * _vg[layer_name][weight_name] \
+                                                       - lr * _g[layer_name][weight_name]
+                        _g[layer_name][weight_name] = -_vg[layer_name][weight_name]
+            self.__gradient_descent(_g)
             if interval and e % interval == 0:
                 # print the training log of whole training set rather than batch:
                 # train_acc = self.measure(self.__train_x_set, self.__train_y_set)

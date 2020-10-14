@@ -24,7 +24,7 @@ class Dense(object):
         return self.name, [self.__units]
 
     def weight_shape(self):
-        return self.__w.shape, self.__b.shape
+        return {'w': self.__w.shape, 'b': self.__b.shape}
 
     def forward(self, _x_set):
         if list(_x_set.shape[1:]) != list(self.__input_dim):
@@ -34,8 +34,8 @@ class Dense(object):
         return _z
 
     def backward(self, _e_set):
-        _e_down = np.dot(_e_set, self.__w.transpose())
-        return _e_down
+        _e_down_set = np.dot(_e_set, self.__w.transpose())
+        return _e_down_set
 
     def gradient(self, _z_down_set, _e_set):
         _e_set = _e_set.copy()
@@ -46,11 +46,13 @@ class Dense(object):
         _dw = np.sum(_dw, axis=0) / nums
         _db = _e_set
         _db = np.sum(_db, axis=0) / nums
-        return _dw, _db
+        return {'w': _dw, 'b': _db}
 
-    def gradient_descent(self, _dw, _db):
-        self.__w -= _dw
-        self.__b -= _db
+    def gradient_descent(self, _g, test_lr=1.):
+        _dw = _g['w']
+        _db = _g['b']
+        self.__w -= test_lr * _dw
+        self.__b -= test_lr * _db
 
 
 if __name__ == '__main__':
@@ -63,6 +65,6 @@ if __name__ == '__main__':
     for i in range(100):
         y_ = dense_block.forward(x)
         cost = y_ - y
-        dw, db = dense_block.gradient(x, cost)
-        dense_block.gradient_descent(0.01 * dw, 0.01 * db)
-        print(f"Epoch{i}: Loss={np.sum(cost**2)}")
+        g = dense_block.gradient(x, cost)
+        dense_block.gradient_descent(g, test_lr=0.01)
+        print(f"Epoch{i}: Loss={np.sum(cost ** 2)}")
