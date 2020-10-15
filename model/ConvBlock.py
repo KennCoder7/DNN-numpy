@@ -36,23 +36,23 @@ class Conv2D(object):
 
     def __compute_output_dim(self):
         if self.__padding == 'valid':
-            ow = self.__input_dim[1] - self.__kernel_size[0] + 1
-            oh = self.__input_dim[2] - self.__kernel_size[1] + 1
+            ow = self.__input_dim[0] - self.__kernel_size[0] + 1
+            oh = self.__input_dim[1] - self.__kernel_size[1] + 1
         elif self.__padding == 'same':
-            ow = self.__input_dim[1]
-            oh = self.__input_dim[2]
+            ow = self.__input_dim[0]
+            oh = self.__input_dim[1]
         else:
             ow = 0
             oh = 0
             print('No such padding method :{}!'.format(self.__padding))
             exit(1)
-        self.__output_dim = [self.__filters, ow, oh]
+        self.__output_dim = [ow, oh, self.__filters]
 
     def __initial_weights(self):
         std = np.sqrt(2. /
-                      (self.__input_dim[0] * self.__kernel_size[0] * self.__kernel_size[1]))  # he normalization
+                      (self.__input_dim[2] * self.__kernel_size[0] * self.__kernel_size[1]))  # he normalization
         self.__w = np.random.normal(loc=0., scale=std,
-                                    size=[self.__output_dim[0], self.__input_dim[0],
+                                    size=[self.__filters, self.__input_dim[2],
                                           self.__kernel_size[0], self.__kernel_size[1]])
         self.__b = np.random.normal(loc=0., scale=std, size=[self.__filters])
 
@@ -70,11 +70,11 @@ class Conv2D(object):
             top_padding = int(self.__kernel_size[1] // 2)
             bottom_padding = int(self.__kernel_size[1] // 2)
         x_padding = np.zeros([len(_x_set),
-                              self.__input_dim[0],
-                              self.__input_dim[1] + left_padding + right_padding,
-                              self.__input_dim[2] + top_padding + bottom_padding])
-        x_padding[:, :, left_padding:self.__input_dim[1] + left_padding,
-        top_padding:self.__input_dim[2] + top_padding] = _x_set.copy()
+                              self.__input_dim[2],
+                              self.__input_dim[0] + left_padding + right_padding,
+                              self.__input_dim[1] + top_padding + bottom_padding])
+        x_padding[:, :, left_padding:self.__input_dim[0] + left_padding,
+        top_padding:self.__input_dim[1] + top_padding] = _x_set.copy()
         return x_padding
 
     def __padding_backward(self, _e_set):
@@ -91,21 +91,21 @@ class Conv2D(object):
             else:
                 top_padding = int(self.__kernel_size[1] // 2)
                 bottom_padding = int(self.__kernel_size[1] // 2)
-            e_padding = np.zeros([len(_e_set), self.__output_dim[0],
-                                  self.__output_dim[1] + left_padding + right_padding,
-                                  self.__output_dim[2] + top_padding + bottom_padding])
-            e_padding[:, :, left_padding:self.__output_dim[1] + left_padding,
-            top_padding:self.__output_dim[2] + top_padding] = _e_set.copy()
+            e_padding = np.zeros([len(_e_set), self.__output_dim[2],
+                                  self.__output_dim[0] + left_padding + right_padding,
+                                  self.__output_dim[1] + top_padding + bottom_padding])
+            e_padding[:, :, left_padding:self.__output_dim[0] + left_padding,
+            top_padding:self.__output_dim[1] + top_padding] = _e_set.copy()
         else:
             left_padding = int(self.__kernel_size[0] - 1)
             right_padding = int(self.__kernel_size[0] - 1)
             top_padding = int(self.__kernel_size[1] - 1)
             bottom_padding = int(self.__kernel_size[1] - 1)
-            e_padding = np.zeros([len(_e_set), self.__output_dim[0],
-                                  self.__output_dim[1] + left_padding + right_padding,
-                                  self.__output_dim[2] + top_padding + bottom_padding])
-            e_padding[:, :, left_padding:self.__output_dim[1] + left_padding,
-            top_padding:self.__output_dim[2] + top_padding] = _e_set.copy()
+            e_padding = np.zeros([len(_e_set), self.__output_dim[2],
+                                  self.__output_dim[0] + left_padding + right_padding,
+                                  self.__output_dim[1] + top_padding + bottom_padding])
+            e_padding[:, :, left_padding:self.__output_dim[0] + left_padding,
+            top_padding:self.__output_dim[1] + top_padding] = _e_set.copy()
         return e_padding
 
     @staticmethod
@@ -163,20 +163,23 @@ class Conv2D(object):
         if list(_x_set.shape[1:]) != list(self.__input_dim):
             print("{} input set dim error!".format(self.name))
             exit(1)
-        _x_set = _x_set.copy() if self.__padding == 'valid' else self.__padding_forward(_x_set)
+        _x_set = _x_set.transpose([0, 3, 1, 2])
+        _x_set = _x_set if self.__padding == 'valid' else self.__padding_forward(_x_set)
         _z = self.__matrix_conv(_x_set, self.__w)
-        return _z
+        return _z.transpose([0, 2, 3, 1])
 
     def backward(self, _e_set):
+        _e_set = _e_set.transpose([0, 3, 1, 2])
         _e_set = self.__padding_backward(_e_set)
         _w_flp = self.__w_flip180()
         # print(self.w[-1, 0], '\n', _w_flp[0, -1])
         _e_down_set = self.__matrix_conv(_e_set, _w_flp)
-        return _e_down_set
+        return _e_down_set.transpose([0, 2, 3, 1])
 
     def gradient(self, _z_down_set, _e_set):
-        _e_set = _e_set.copy()
-        _z_down_set = _z_down_set.copy() if self.__padding == 'valid' else self.__padding_forward(_z_down_set.copy())
+        _e_set = _e_set.transpose([0, 3, 1, 2])
+        _z_down_set = _z_down_set.transpose([0, 3, 1, 2])
+        _z_down_set = _z_down_set if self.__padding == 'valid' else self.__padding_forward(_z_down_set.copy())
         nums = len(_z_down_set)
         _w_shape = list(self.__w.shape)
         _w_shape.append(nums)
@@ -199,10 +202,10 @@ class Conv2D(object):
 
 if __name__ == '__main__':
     cnn_block = Conv2D(name='c', kernel_size=3, filters=8, padding='same')
-    cnn_block.initial([2, 5, 5])
+    cnn_block.initial([5, 5, 2])
 
-    x = np.random.randn(1, 2, 5, 5)
-    y = np.random.randn(1, 8, 5, 5)
+    x = np.random.randn(1, 5, 5, 2)
+    y = np.random.randn(1, 5, 5, 8)
 
     for i in range(100):
         y_ = cnn_block.forward(x)
