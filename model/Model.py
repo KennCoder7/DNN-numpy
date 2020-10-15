@@ -203,7 +203,6 @@ if __name__ == '__main__':
                 Activation(name='A4', method='softmax'),
             ]
         )
-        _model.print_structure()
         x_set = np.random.randn(2, 3, 10, 10)
         y_set = np.zeros([2, 10])
         y_set[0, 2] = 1

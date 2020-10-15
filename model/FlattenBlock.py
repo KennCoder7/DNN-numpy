@@ -14,7 +14,10 @@ class Flatten(object):
     def initial(self, input_dim):
         self.__input_dim = input_dim
         try:
-            self.__output_dim = [input_dim[0]*input_dim[1]*input_dim[2]]
+            self.__output_dim = 1
+            for _d in self.__input_dim:
+                self.__output_dim *= _d
+            self.__output_dim = [self.__output_dim]
         except:
             print("{} initial error!".format(self.name))
             exit(1)
@@ -29,7 +32,10 @@ class Flatten(object):
 
     def backward(self, _e_up_set):
         _e_up_set = np.array(_e_up_set)
-        return np.reshape(_e_up_set, [-1, self.__input_dim[0], self.__input_dim[1], self.__input_dim[2]])
+        d_lst = [-1]
+        for _d in self.__input_dim:
+            d_lst.append(_d)
+        return np.reshape(_e_up_set, d_lst)
 
 
 if __name__ == '__main__':
