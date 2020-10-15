@@ -7,11 +7,7 @@ Python 3
 Numpy  
 # MLP-numpy  
 ## Principle
-### Dense Block (Fully Connected Block)
-Forward: ![](http://latex.codecogs.com/svg.latex?w^l=w^l*z^{l-1}+b^l)  
-Backward: ![](http://latex.codecogs.com/svg.latex?e^{l-1}=(w^l)^T*e^l)  
-Gradient: ![](http://latex.codecogs.com/svg.latex?dw^l=z^{l-1}*e^l,db^l=e^l)  
-Where * is refer to matmul operation.  
+![MLP](https://github.com/KennCoder7/DNN-numpy/blob/main/principle/mlp.png)
 ## Example
 Perfrom MNIST recognition task.  
 ``
@@ -50,24 +46,7 @@ print('Test_Acc=[{}]'.format(model.measure(mnist.test_x_set, mnist.test_y_set)))
 ```
 # CNN-numpy
 ## Principle
-### Convolutional Block
-Forward:  ![](http://latex.codecogs.com/svg.latex?z^l=z^{l-1}*w^l+b^l)  
-Backward: ![](http://latex.codecogs.com/svg.latex?e^{l-1}=e^l*rot180(w^l))  
-Gradient: ![](http://latex.codecogs.com/svg.latex?dw^l=z^{l-1}*e^l,db^l=sum(e^l))  
-Where * is refer to convolution operation.  
-### Activation Block
-Forward: ![](http://latex.codecogs.com/svg.latex?z^l=f(z^{l-1}))  
-Backward: ![](http://latex.codecogs.com/svg.latex?e^{l-1}=df(z^{l-1})*e^l)  
-Where f is refer to activation function, df is refer to derivative activation function, and * is refer to multiply operation. 
-### MaxPooling Block
-Forward: ![](http://latex.codecogs.com/svg.latex?z^l=f(z^{l-1}))  
-Backward: ![](http://latex.codecogs.com/svg.latex?e^{l-1}=df(e^l))  
-Where f is refer to maxpooling sample, df is refer to upsample.
-### Dense Block (Fully Connected Block)
-Forward: ![](http://latex.codecogs.com/svg.latex?w^l=w^l*z^{l-1}+b^l)  
-Backward: ![](http://latex.codecogs.com/svg.latex?e^{l-1}=(w^l)^T*e^l)  
-Gradient: ![](http://latex.codecogs.com/svg.latex?dw^l=z^{l-1}*e^l,db^l=e^l)  
-Where * is refer to matmul operation.  
+![CNN](https://github.com/KennCoder7/DNN-numpy/blob/main/principle/cnn.png)
 ## Example
 Perfrom MNIST recognition task.  
 ``
