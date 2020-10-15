@@ -67,11 +67,11 @@ class MNIST(object):
             mean = 0
             std = 0
             for x in self.train_x_set:
-                mean += np.mean(x[0, :, :])
+                mean += np.mean(x[:, :, 0])
             mean /= len(self.train_x_set)
             self.train_x_set -= mean
             for x in self.train_x_set:
-                std += np.mean(np.square(x[0, :, :]).flatten())
+                std += np.mean(np.square(x[:, :, 0]).flatten())
             std = np.sqrt(std / len(self.train_x_set))
             print('The mean and std of MNIST:', mean, std)    # 0.1306604762738434 0.30810780385646314
             self.train_x_set /= std
@@ -82,8 +82,8 @@ class MNIST(object):
         if self.__dim == 1:
             pass
         elif self.__dim == 3:
-            self.train_x_set = np.reshape(self.train_x_set, [len(self.train_x_set), 1, 28, 28])
-            self.test_x_set = np.reshape(self.test_x_set, [len(self.test_x_set), 1, 28, 28])
+            self.train_x_set = np.reshape(self.train_x_set, [len(self.train_x_set), 28, 28, 1])
+            self.test_x_set = np.reshape(self.test_x_set, [len(self.test_x_set), 28, 28, 1])
         else:
             print('Dimension Error!')
             exit(1)
