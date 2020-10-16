@@ -16,7 +16,7 @@ Flatten-FC100-Relu-FC100-Relu-FC10-Softmax
 Test_Acc=0.9525 after 500 epoches.
 1. define a Model class  
 ``` 
-model = Model(name='model', input_dim=[1, 28, 28])  
+model = Model(name='model', input_dim=[28, 28， 1])  
 ```
 2. initial the structure  
 ```
